@@ -24,9 +24,7 @@ export class Checkbox extends OptionsWidget<ICheckboxOption> {
   }
 
   onOptionChange(option: ICheckboxOption, payload: unknown) {
-    if (payload === 'checked') {
-      option.checked = true;
-    }
+    option.checked = payload === 'checked';
   }
 
   lineChatmark(option: ICheckboxOption): string {

@@ -5,6 +5,8 @@ export interface IWidgetProps {
   actions?: { submit?: string; cancel?: string };
 }
 
+// uncommon utf-8 character
+export const _IdSeparator = '♯';
 export abstract class Widget {
   protected idPrefix: string;
   private rendered = false;
@@ -21,11 +23,11 @@ export abstract class Widget {
   }
 
   static generateId(idPrefix: string, index: string) {
-    return `${idPrefix}_${index}`;
+    return `${idPrefix}${_IdSeparator}${index}`;
   }
 
   static parseId(id: string) {
-    const parts = id.split('_');
+    const parts = id.split(_IdSeparator);
     return { prefix: parts[0], id: parts[1] };
   }
 

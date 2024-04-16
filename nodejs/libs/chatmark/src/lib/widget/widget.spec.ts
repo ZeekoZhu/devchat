@@ -2,13 +2,13 @@ import { noop } from 'lodash-es';
 import { beforeAll, describe, expect } from 'vitest';
 
 import { IDevChatIpc } from '../iobase';
-import { Widget } from './widget';
+import { _IdSeparator, Widget } from './widget';
 import { Checkbox } from './checkbox';
 import { TextEditor } from './text-editor';
 import { Buttons } from './buttons';
 
 const checkboxPrefix = '3c17158c-10bb-47dd-bfd7-df1ffc099971';
-const widgetId = (key: string) => `${checkboxPrefix}_${key}`;
+const widgetId = (key: string) => `${checkboxPrefix}${_IdSeparator}${key}`;
 beforeAll(() => {
   vi.spyOn(Widget, 'generateIdPrefix').mockReturnValue(checkboxPrefix);
 });
@@ -34,12 +34,12 @@ describe('Checkbox', () => {
     await checkbox.render(ipc);
     expect(sendSpy).toBeCalledTimes(1);
     expect(sendSpy.mock.lastCall[0]).toMatchInlineSnapshot(`
-        "\`\`\`chatmark submit=submit checkbox cancel=cancel checkbox
-        title
-        > [](3c17158c-10bb-47dd-bfd7-df1ffc099971_foo) foo
-        > [](3c17158c-10bb-47dd-bfd7-df1ffc099971_bar) bar
-        \`\`\`"
-      `);
+      "\`\`\`chatmark submit=submit checkbox cancel=cancel checkbox
+      title
+      > [](3c17158c-10bb-47dd-bfd7-df1ffc099971♯foo) foo
+      > [](3c17158c-10bb-47dd-bfd7-df1ffc099971♯bar) bar
+      \`\`\`"
+    `);
   });
 
   test('update option(key).checked', async () => {
@@ -60,6 +60,32 @@ describe('Checkbox', () => {
     expect(checkbox.options).toEqual([
       { label: 'foo', key: 'foo', checked: true },
       { label: 'bar', key: 'bar', checked: false },
+    ]);
+  });
+
+  test('update option(key).checked to false', async () => {
+    const checkbox = new Checkbox({
+      title: 'title',
+      options: [
+        { label: 'foo', key: 'foo', checked: true },
+        { label: 'bar', key: 'bar' },
+      ],
+    });
+    const ipc = {
+      send: noop,
+    } as unknown as IDevChatIpc;
+
+    const sendSpy = vi.spyOn(ipc, 'send');
+    sendSpy.mockReturnValue(
+      Promise.resolve({
+        [widgetId('foo')]: 'unchecked',
+        [widgetId('bar')]: 'checked',
+      })
+    );
+    await checkbox.render(ipc);
+    expect(checkbox.options).toEqual([
+      { label: 'foo', key: 'foo', checked: false },
+      { label: 'bar', key: 'bar', checked: true },
     ]);
   });
 });
@@ -88,7 +114,7 @@ describe('TextEditor', () => {
     expect(sendSpy.mock.lastCall[0]).toMatchInlineSnapshot(`
       "\`\`\`chatmark submit=submit editor cancel=cancel editor
       editor title
-      > | (3c17158c-10bb-47dd-bfd7-df1ffc099971_editor)
+      > | (3c17158c-10bb-47dd-bfd7-df1ffc099971♯editor)
       > value
       \`\`\`"
     `);
@@ -112,7 +138,7 @@ describe('TextEditor', () => {
     expect(sendSpy).toBeCalledTimes(1);
     expect(sendSpy.mock.lastCall[0]).toMatchInlineSnapshot(`
       "\`\`\`chatmark
-      > | (3c17158c-10bb-47dd-bfd7-df1ffc099971_editor)
+      > | (3c17158c-10bb-47dd-bfd7-df1ffc099971♯editor)
       > line1
       > line2
       > line3
@@ -161,12 +187,12 @@ describe('Buttons', async () => {
     await buttons.render(ipc);
     expect(sendSpy).toBeCalledTimes(1);
     expect(sendSpy.mock.lastCall[0]).toMatchInlineSnapshot(`
-        "\`\`\`chatmark submit=submit buttons cancel=cancel buttons
-        title
-        > (3c17158c-10bb-47dd-bfd7-df1ffc099971_foo) foo
-        > (3c17158c-10bb-47dd-bfd7-df1ffc099971_bar) bar
-        \`\`\`"
-      `);
+      "\`\`\`chatmark submit=submit buttons cancel=cancel buttons
+      title
+      > (3c17158c-10bb-47dd-bfd7-df1ffc099971♯foo) foo
+      > (3c17158c-10bb-47dd-bfd7-df1ffc099971♯bar) bar
+      \`\`\`"
+    `);
   });
 
   test('update option(key).clicked', async () => {

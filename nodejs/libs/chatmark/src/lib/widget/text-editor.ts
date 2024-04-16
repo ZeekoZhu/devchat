@@ -7,7 +7,10 @@ export interface ITextEditorProps extends IWidgetProps {
 
 export class TextEditor extends Widget {
   value: string;
-  protected editorId = Widget.generateId(this.idPrefix, 'editor');
+
+  protected get editorId() {
+    return Widget.generateId(this.idPrefix, 'editor');
+  }
 
   constructor(protected props: ITextEditorProps) {
     super(props);
