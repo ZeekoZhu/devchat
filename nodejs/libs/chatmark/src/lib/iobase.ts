@@ -1,9 +1,21 @@
-import { concatMap, EMPTY, filter, from, Observable, of, reduce, scan } from 'rxjs';
+import {
+  concatMap,
+  EMPTY,
+  filter,
+  firstValueFrom,
+  from,
+  Observable,
+  of,
+  reduce,
+  scan,
+  share,
+  timeout,
+} from 'rxjs';
 import * as Yaml from 'yaml';
 import * as tty from 'node:tty';
 
 export interface IDevChatIpc {
-  send: (msg: string) => Promise<void>;
+  send: <T>(msg: string) => Promise<T>;
   messages: Observable<Record<string, string>>;
 }
 
@@ -47,19 +59,11 @@ interface StdIOIpcOptions {
   stdin?: tty.ReadStream;
 }
 
-export const createStdIOIpc = ({ stdout = process.stdout, stdin = process.stdin }: StdIOIpcOptions) => ({
-  send: (msg: string) => {
-    return new Promise<void>((resolve, reject) => {
-      const content = `"""\n${msg}\n"""`;
-      stdout.write(content, (err) => {
-        if (err) {
-          reject(err);
-        }
-      });
-      resolve();
-    });
-  },
-  messages: new Observable(subscriber => {
+export const createStdIOIpc = ({
+  stdout = process.stdout,
+  stdin = process.stdin,
+}: StdIOIpcOptions) => {
+  const messages$ = new Observable((subscriber) => {
     stdin.setEncoding('utf-8');
     const handleOnData = (data: string) => {
       subscriber.next(data);
@@ -84,6 +88,22 @@ export const createStdIOIpc = ({ stdout = process.stdout, stdin = process.stdin 
     // to lines of string
     concatMap(parseLine()),
     concatMap(parseMessage()),
-  ),
-} as IDevChatIpc);
-
+    share()
+  );
+  messages$.subscribe();
+  return {
+    send: async <T>(msg: string) => {
+      await new Promise<void>((resolve, reject) => {
+        const content = `"""\n${msg}\n"""`;
+        stdout.write(content, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        resolve();
+      });
+      return (await firstValueFrom(messages$)) as Promise<T>;
+    },
+    messages: messages$,
+  } as IDevChatIpc;
+};

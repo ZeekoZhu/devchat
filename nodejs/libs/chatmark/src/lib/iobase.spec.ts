@@ -10,22 +10,27 @@ test('can write msg to stdout', async () => {
       cb(null);
     },
   };
-  const ipc = createStdIOIpc({ stdout: stdout as unknown as tty.WriteStream });
+  const stdin = new FakeReadStream();
+  const ipc = createStdIOIpc({
+    stdout: stdout as unknown as tty.WriteStream,
+    stdin: stdin as unknown as tty.ReadStream,
+  });
   const msg = 'hello';
-  await ipc.send(msg);
+  const task = ipc.send(msg);
+  await stdin.playChunks(['```yaml\n', 'foo: bar\n', '```\n']);
+  const result = await task;
   expect(stdout.buffer).toBe(`"""\n${msg}\n"""`);
+  expect(result).toEqual({ foo: 'bar' });
 });
 
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 class FakeReadStream {
   callbacks: Map<string, Function> = new Map();
 
-  setEncoding(encoding: string) {
-
-  }
+  setEncoding(encoding: string) {}
 
   on(event: string, cb: Function) {
     this.callbacks.set(event, cb);
@@ -52,9 +57,7 @@ class FakeReadStream {
     this.callbacks.get('end')?.();
   }
 
-  removeAllListeners() {
-
-  }
+  removeAllListeners() {}
 }
 
 test('can parse messages', async () => {
@@ -62,13 +65,9 @@ test('can parse messages', async () => {
 
   const ipc = createStdIOIpc({ stdin: stdin as unknown as tty.ReadStream });
   const promise = firstValueFrom(ipc.messages.pipe(toArray()));
-  await stdin.playChunks([
-    '```yaml\n',
-    'foo: bar\n',
-    '```\n',
-  ]);
+  await stdin.playChunks(['```yaml\n', 'foo: bar\n', '```\n']);
   const messages = await promise;
-  expect(messages).toEqual([ { foo: 'bar' } ]);
+  expect(messages).toEqual([{ foo: 'bar' }]);
 });
 
 test('can parse messages with incomplete messages', async () => {
@@ -87,10 +86,10 @@ test('can parse messages with incomplete messages', async () => {
 
   const messages = await promise;
 
-  expect(messages).toEqual([ { foo: 'bar' } ]);
+  expect(messages).toEqual([{ foo: 'bar' }]);
 });
 
-test('can handle nested yaml', async ()=>{
+test('can handle nested yaml', async () => {
   const stdin = new FakeReadStream();
   const ipc = createStdIOIpc({ stdin: stdin as unknown as tty.ReadStream });
 
@@ -114,5 +113,5 @@ test('can handle nested yaml', async ()=>{
 
   const messages = await promise;
 
-  expect(messages).toEqual([ { file: '```yaml\nfoo: bar\n```\n' } ]);
-})
+  expect(messages).toEqual([{ file: '```yaml\nfoo: bar\n```\n' }]);
+});
