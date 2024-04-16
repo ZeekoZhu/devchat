@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { IDevChatIpc } from './iobase';
+import { IDevChatIpc } from '../iobase';
 
 export abstract class Widget {
   protected idPrefix: string;

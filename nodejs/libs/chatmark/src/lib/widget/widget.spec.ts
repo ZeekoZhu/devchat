@@ -1,7 +1,7 @@
 import { noop } from 'lodash-es';
 import { beforeAll, expect } from 'vitest';
 
-import { IDevChatIpc } from './iobase';
+import { IDevChatIpc } from '../iobase';
 import { Widget } from './widget';
 import { Checkbox } from './checkbox';
 import { TextEditor } from './text-editor';
