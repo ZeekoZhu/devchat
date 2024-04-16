@@ -1,7 +1,7 @@
-import { ISubmitableWidgetProps, Widget } from './widget';
-import { pick } from 'lodash-es';
+import { IWidgetProps, Widget } from './widget';
 
-export interface ITextEditorProps extends ISubmitableWidgetProps {
+export interface ITextEditorProps extends IWidgetProps {
+  title?: string;
   value: string;
 }
 
@@ -10,7 +10,7 @@ export class TextEditor extends Widget {
   protected editorId = Widget.generateId(this.idPrefix, 'editor');
 
   constructor(protected props: ITextEditorProps) {
-    super(pick(props, ['submit', 'cancel']));
+    super(props);
     this.value = props.value;
   }
 

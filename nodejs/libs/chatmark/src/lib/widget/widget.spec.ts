@@ -19,8 +19,10 @@ describe('Checkbox', () => {
         { label: 'foo', key: 'foo' },
         { label: 'bar', key: 'bar' },
       ],
-      cancel: 'cancel checkbox',
-      submit: 'submit checkbox',
+      actions: {
+        cancel: 'cancel checkbox',
+        submit: 'submit checkbox',
+      },
     });
     const ipc = {
       send: noop,
@@ -66,8 +68,10 @@ describe('TextEditor', () => {
     const textEditor = new TextEditor({
       value: 'value',
       title: 'editor title',
-      submit: 'submit editor',
-      cancel: 'cancel editor',
+      actions: {
+        submit: 'submit editor',
+        cancel: 'cancel editor',
+      },
     });
 
     const ipc = {

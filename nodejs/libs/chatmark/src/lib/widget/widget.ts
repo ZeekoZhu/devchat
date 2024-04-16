@@ -1,11 +1,18 @@
 import { v4 as uuidv4 } from 'uuid';
 import { IDevChatIpc } from '../iobase';
 
+export interface IWidgetProps {
+  actions?: { submit?: string; cancel?: string };
+}
+
 export abstract class Widget {
   protected idPrefix: string;
   private rendered = false;
 
-  protected constructor(public actions: { submit?: string; cancel?: string }) {
+  public actions?: { submit?: string; cancel?: string };
+
+  protected constructor({ actions }: IWidgetProps) {
+    this.actions = actions;
     this.idPrefix = Widget.generateIdPrefix();
   }
 
@@ -34,10 +41,10 @@ export abstract class Widget {
     this.rendered = true;
 
     let header = '```chatmark';
-    if (this.actions.submit) {
+    if (this.actions?.submit) {
       header += ` submit=${this.actions.submit}`;
     }
-    if (this.actions.cancel) {
+    if (this.actions?.cancel) {
       header += ` cancel=${this.actions.cancel}`;
     }
     const lines = [header, this.toChatmark(), '```'];
@@ -45,10 +52,4 @@ export abstract class Widget {
     const response = await ipc.send<Record<string, unknown>>(chatmark);
     this.parseResponse(response);
   }
-}
-
-export interface ISubmitableWidgetProps {
-  title?: string;
-  submit?: string;
-  cancel?: string;
 }
