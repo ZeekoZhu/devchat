@@ -1,7 +1,8 @@
-import { Widget } from './widget';
-import { IDevChatIpc } from '../iobase';
-import { Buttons } from './buttons';
 import { get, set } from 'lodash-es';
+
+import { Widget } from './widget.mjs';
+import { IDevChatIpc } from '../iobase.mjs';
+import { Buttons } from './buttons.mjs';
 
 export interface IFormProps<T extends FormPropChild[]> {
   /**

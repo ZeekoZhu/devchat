@@ -1,11 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ESNext",
     "outDir": "../../dist/out-tsc",
     "declaration": true,
     "types": ["node"]
   },
-  "exclude": ["vite.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
-  "include": ["src/**/*.ts"]
+  "exclude": ["vite.config.ts", "src/**/*.spec.mts", "src/**/*.test.mts"],
+  "include": ["src/**/*.mts"]
 }

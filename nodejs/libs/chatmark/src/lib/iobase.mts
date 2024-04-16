@@ -1,21 +1,20 @@
 import {
   concatMap,
   EMPTY,
-  filter,
   firstValueFrom,
   from,
   Observable,
   of,
-  reduce,
-  scan,
-  share,
-  timeout,
+  share, tap
 } from 'rxjs';
 import * as Yaml from 'yaml';
 import * as tty from 'node:tty';
+import pino, { Logger } from 'pino';
 
 export interface IDevChatIpc {
   send: <T>(msg: string) => Promise<T>;
+  oneWaySend: (msg: string) => void;
+  sendError: (msg: string) => void;
   messages: Observable<Record<string, string>>;
 }
 
@@ -57,12 +56,19 @@ const parseMessage = () => {
 interface StdIOIpcOptions {
   stdout?: tty.WriteStream;
   stdin?: tty.ReadStream;
+  stderr?: tty.WriteStream;
+  logger?: Logger;
 }
 
 export const createStdIOIpc = ({
   stdout = process.stdout,
   stdin = process.stdin,
+  stderr = process.stderr,
+  logger = pino()
 }: StdIOIpcOptions) => {
+  const dataLogger = logger.child({ category: 'ipc.data' });
+  const lineLogger = logger.child({ category: 'ipc.line' });
+  const messageLogger = logger.child({ category: 'ipc.message' });
   const messages$ = new Observable((subscriber) => {
     stdin.setEncoding('utf-8');
     const handleOnData = (data: string) => {
@@ -85,16 +91,27 @@ export const createStdIOIpc = ({
       stdin.removeAllListeners('error');
     };
   }).pipe(
-    // to lines of string
+    tap((data) => dataLogger.trace(data)),
     concatMap(parseLine()),
+    tap((line) => lineLogger.trace(line)),
     concatMap(parseMessage()),
+    tap((msg) => messageLogger.debug(msg)),
     share()
   );
   messages$.subscribe();
   return {
-    send: async <T>(msg: string) => {
+    oneWaySend: (msg: string) => {
+      logger.debug(`oneWaySend: ${msg}`);
+      stdout.write(msg);
+    },
+    sendError: (msg: string) => {
+      logger.error(`sendError: ${msg}`);
+      stderr.write(msg);
+    },
+    send: async <T,>(msg: string) => {
       await new Promise<void>((resolve, reject) => {
-        const content = `"""\n${msg}\n"""`;
+        const content = `\n${msg}\n`;
+        logger.debug(`send: ${content}`);
         stdout.write(content, (err) => {
           if (err) {
             reject(err);

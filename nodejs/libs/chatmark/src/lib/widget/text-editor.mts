@@ -1,4 +1,4 @@
-import { IWidgetProps, Widget } from './widget';
+import { IWidgetProps, Widget } from './widget.mjs';
 
 export interface ITextEditorProps extends IWidgetProps {
   title?: string;

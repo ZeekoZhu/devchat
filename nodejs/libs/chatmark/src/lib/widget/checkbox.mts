@@ -1,9 +1,9 @@
-import { Widget } from './widget';
+import { Widget } from './widget.mjs';
 import {
   IOptionsWidgetItem,
   IOptionsWidgetProps,
   OptionsWidget,
-} from './options-widget';
+} from './options-widget.mjs';
 
 export interface ICheckboxOption extends IOptionsWidgetItem {
   checked?: boolean;

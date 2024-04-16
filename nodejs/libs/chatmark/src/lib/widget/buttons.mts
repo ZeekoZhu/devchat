@@ -2,8 +2,8 @@ import {
   IOptionsWidgetItem,
   IOptionsWidgetProps,
   OptionsWidget,
-} from './options-widget';
-import { Widget } from './widget';
+} from './options-widget.mjs';
+import { Widget } from './widget.mjs';
 
 export interface IButtonOption extends IOptionsWidgetItem {
   clicked?: boolean;

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { IDevChatIpc } from '../iobase';
+import { IDevChatIpc } from '../iobase.mjs';
 
 export interface IWidgetProps {
   actions?: { submit?: string; cancel?: string };

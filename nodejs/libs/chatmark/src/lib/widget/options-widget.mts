@@ -1,6 +1,6 @@
-import { IWidgetProps, Widget } from './widget';
 import { cloneDeep, entries } from 'lodash-es';
-import { ICheckboxOption } from './checkbox';
+import { IWidgetProps, Widget } from './widget.mjs';
+import { ICheckboxOption } from './checkbox.mjs';
 
 export interface IOptionsWidgetItem {
   label: string;

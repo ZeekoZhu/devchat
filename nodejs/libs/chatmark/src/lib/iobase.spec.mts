@@ -1,6 +1,7 @@
-import { createStdIOIpc } from './iobase';
+import { createStdIOIpc } from './iobase.mjs';
 import * as tty from 'node:tty';
 import { firstValueFrom, toArray } from 'rxjs';
+import pino from 'pino';
 
 test('can write msg to stdout', async () => {
   const stdout = {
@@ -19,7 +20,7 @@ test('can write msg to stdout', async () => {
   const task = ipc.send(msg);
   await stdin.playChunks(['```yaml\n', 'foo: bar\n', '```\n']);
   const result = await task;
-  expect(stdout.buffer).toBe(`"""\n${msg}\n"""`);
+  expect(stdout.buffer).toBe(`\n${msg}\n`);
   expect(result).toEqual({ foo: 'bar' });
 });
 
@@ -63,7 +64,7 @@ class FakeReadStream {
 test('can parse messages', async () => {
   const stdin = new FakeReadStream();
 
-  const ipc = createStdIOIpc({ stdin: stdin as unknown as tty.ReadStream });
+  const ipc = createStdIOIpc({ stdin: stdin as unknown as tty.ReadStream, logger: pino() });
   const promise = firstValueFrom(ipc.messages.pipe(toArray()));
   await stdin.playChunks(['```yaml\n', 'foo: bar\n', '```\n']);
   const messages = await promise;
