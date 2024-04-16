@@ -1,10 +1,11 @@
 import { noop } from 'lodash-es';
-import { beforeAll, expect } from 'vitest';
+import { beforeAll, describe, expect } from 'vitest';
 
 import { IDevChatIpc } from '../iobase';
 import { Widget } from './widget';
 import { Checkbox } from './checkbox';
 import { TextEditor } from './text-editor';
+import { Buttons } from './buttons';
 
 const checkboxPrefix = '3c17158c-10bb-47dd-bfd7-df1ffc099971';
 const widgetId = (key: string) => `${checkboxPrefix}_${key}`;
@@ -135,5 +136,79 @@ describe('TextEditor', () => {
     await textEditor.render(ipc);
 
     expect(textEditor.value).toEqual('new value\nfoo\nbar');
+  });
+});
+
+describe('Buttons', async () => {
+  test('can render', async () => {
+    const buttons = new Buttons({
+      title: 'title',
+      options: [
+        { label: 'foo', key: 'foo' },
+        { label: 'bar', key: 'bar' },
+      ],
+      actions: {
+        cancel: 'cancel buttons',
+        submit: 'submit buttons',
+      },
+    });
+    const ipc = {
+      send: noop,
+    } as unknown as IDevChatIpc;
+
+    const sendSpy = vi.spyOn(ipc, 'send');
+    sendSpy.mockReturnValue(Promise.resolve({ foo: 'clicked' }));
+    await buttons.render(ipc);
+    expect(sendSpy).toBeCalledTimes(1);
+    expect(sendSpy.mock.lastCall[0]).toMatchInlineSnapshot(`
+        "\`\`\`chatmark submit=submit buttons cancel=cancel buttons
+        title
+        > (3c17158c-10bb-47dd-bfd7-df1ffc099971_foo) foo
+        > (3c17158c-10bb-47dd-bfd7-df1ffc099971_bar) bar
+        \`\`\`"
+      `);
+  });
+
+  test('update option(key).clicked', async () => {
+    const buttons = new Buttons({
+      title: 'title',
+      options: [
+        { label: 'foo', key: 'foo' },
+        { label: 'bar', key: 'bar' },
+      ],
+    });
+    const ipc = {
+      send: noop,
+    } as unknown as IDevChatIpc;
+
+    const sendSpy = vi.spyOn(ipc, 'send');
+    sendSpy.mockReturnValue(Promise.resolve({ [widgetId('foo')]: 'clicked' }));
+    await buttons.render(ipc);
+    expect(buttons.options).toEqual([
+      { label: 'foo', key: 'foo', clicked: true },
+      { label: 'bar', key: 'bar', clicked: false },
+    ]);
+  });
+
+  test('get clicked', async () => {
+    const buttons = new Buttons({
+      title: 'title',
+      options: [
+        { label: 'foo', key: 'foo' },
+        { label: 'bar', key: 'bar' },
+      ],
+    });
+    const ipc = {
+      send: noop,
+    } as unknown as IDevChatIpc;
+
+    const sendSpy = vi.spyOn(ipc, 'send');
+    sendSpy.mockReturnValue(Promise.resolve({ [widgetId('foo')]: 'clicked' }));
+    await buttons.render(ipc);
+    expect(buttons.clicked).toEqual({
+      label: 'foo',
+      key: 'foo',
+      clicked: true,
+    });
   });
 });
