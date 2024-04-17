@@ -4,7 +4,7 @@ import { Widget } from './widget.mjs';
 import { IDevChatIpc } from '../iobase.mjs';
 import { Buttons } from './buttons.mjs';
 
-export interface IFormProps<T extends FormPropChild[]> {
+export interface IFormProps<T extends readonly FormPropChild[]> {
   /**
    * `Buttons` can not be used in a form.
    */
@@ -64,14 +64,14 @@ export class Form<T extends FormPropChild[]> {
     if (this.props.title) {
       lines.push(this.props.title);
     }
-    for (const key in this.fields) {
-      const component = this.fields[key];
-      if (typeof component === 'string') {
-        lines.push(component);
-      } else if (component instanceof Widget) {
+    for (const child of this.props.children) {
+      if (isWidgetChild(child)) {
+        const [ _, component ] = child;
         lines.push(component.toChatmark());
+      } else if (typeof child === 'string') {
+        lines.push(child);
       } else {
-        throw new Error(`Invalid component type: ${component}`);
+        throw new Error(`Invalid component type: ${child}`);
       }
     }
 

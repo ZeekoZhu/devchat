@@ -1,6 +1,6 @@
 {
   "name": "@zeeko/chatmark",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "type": "module",
   "types": "./src/index.d.mts",
   "exports": {

@@ -50,7 +50,7 @@ export class WorkflowContext {
   }
 
   println(text: string) {
-    this.ipc.oneWaySend(text + '\n\n');
+    this.ipc.oneWaySend(text + '<br/>');
   }
 }
 
