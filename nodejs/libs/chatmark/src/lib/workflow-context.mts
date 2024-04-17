@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { Widget } from './widget/index.mjs';
 import { createStdIOIpc, IDevChatIpc } from './iobase.mjs';
 import pino, { Logger } from 'pino';
+import { ChatOpenAI } from '@langchain/openai';
 
 const createWorkflowShell = (logger: Logger, ipc: IDevChatIpc) => {
   return async (
@@ -51,6 +52,14 @@ export class WorkflowContext {
 
   println(text: string) {
     this.ipc.oneWaySend(text + '<br/>');
+  }
+
+  llm() {
+    return new ChatOpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    }, {
+      baseURL: process.env.OPENAI_BASE_URL
+    });
   }
 }
 

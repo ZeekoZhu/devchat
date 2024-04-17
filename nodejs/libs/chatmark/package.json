@@ -7,6 +7,8 @@
     ".": "./src/index.mjs"
   },
   "dependencies": {
+    "@langchain/openai": "^0.0.28",
+    "langchain": "^0.1.33",
     "lodash-es": "^4.17.21",
     "nanoid": "^5.0.7",
     "pino": "^8.20.0",
