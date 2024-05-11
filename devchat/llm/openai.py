@@ -4,6 +4,7 @@ import os
 import re
 from typing import Dict, List
 
+import httpx
 import openai
 
 from .pipeline import (
@@ -39,9 +40,13 @@ def chat_completion_stream_commit(
     messages: List[Dict],  # [{"role": "user", "content": "hello"}]
     llm_config: Dict,  # {"model": "...", ...}
 ):
+    proxy_url = os.environ.get("DEVCHAT_PROXY", "")
+    proxy_setting ={"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
+
     client = openai.OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY", None),
         base_url=os.environ.get("OPENAI_API_BASE", None),
+        http_client=httpx.Client(**proxy_setting, trust_env=False)
     )
 
     llm_config["stream"] = True
@@ -50,9 +55,13 @@ def chat_completion_stream_commit(
 
 
 def chat_completion_stream_raw(**kwargs):
+    proxy_url = os.environ.get("DEVCHAT_PROXY", "")
+    proxy_setting ={"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
+
     client = openai.OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY", None),
         base_url=os.environ.get("OPENAI_API_BASE", None),
+        http_client=httpx.Client(**proxy_setting, trust_env=False)
     )
 
     kwargs["stream"] = True
@@ -114,9 +123,8 @@ def chunks_call(chunks):
 
 def content_to_json(content):
     try:
-        # json will format as ```json ... ``` in 1106 model
-        response_content = _try_remove_markdown_block_flag(content)
-        response_obj = json.loads(response_content)
+        content_no_block = _try_remove_markdown_block_flag(content)
+        response_obj = json.loads(content_no_block)
         return response_obj
     except json.JSONDecodeError as err:
         raise RetryException(err) from err
@@ -148,13 +156,22 @@ chat_completion_call = retry(
     pipeline(chat_completion_stream_commit, retry_timeout, chunks_call), times=3
 )
 
-chat_completion_no_stream_return_json = exception_handle(
+chat_completion_no_stream_return_json_with_retry = exception_handle(
     retry(
         pipeline(chat_completion_stream_commit, retry_timeout, chunks_content, content_to_json),
         times=3,
     ),
     exception_output_handle(lambda err: None),
 )
+
+def chat_completion_no_stream_return_json(
+        messages: List[Dict], llm_config: Dict):
+    """call llm without stream, return json object"""
+    llm_config["response_format"]={"type": "json_object"}
+    return chat_completion_no_stream_return_json_with_retry(
+        messages=messages,
+        llm_config=llm_config)
+
 
 chat_completion_stream = exception_handle(
     retry(
