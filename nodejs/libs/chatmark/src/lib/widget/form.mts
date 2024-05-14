@@ -36,7 +36,7 @@ function isWidgetChild(child: FormPropChild): child is [string, Widget] {
 /**
  * A container for multiple widgets.
  */
-export class Form<T extends FormPropChild[]> {
+export class Form<T extends FormPropChild[]> implements IRenderable {
   fields: WidgetFields<T>;
   protected rendered = false;
 

@@ -1,7 +1,7 @@
 import { $, os, ProcessOutput } from 'zx';
 import * as path from 'node:path';
 import { nanoid } from 'nanoid';
-import { Widget } from './widget/index.mjs';
+import { IRenderable, Widget } from './widget/index.mjs';
 import { createStdIOIpc, IDevChatIpc } from './iobase.mjs';
 import pino, { Logger } from 'pino';
 import { ChatOpenAI } from '@langchain/openai';
@@ -42,7 +42,7 @@ export class WorkflowContext {
     }
   }
 
-  async render(widget: Widget) {
+  async render(widget: IRenderable) {
     await widget.render(this.ipc);
   }
 
@@ -54,12 +54,17 @@ export class WorkflowContext {
     this.ipc.oneWaySend(text + '<br/>');
   }
 
-  llm() {
+  llm(options?: { model?: string }) {
     return new ChatOpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey: process.env.OPENAI_API_KEY,
+      model: options?.model
     }, {
       baseURL: process.env.OPENAI_BASE_URL
     });
+  }
+
+  getLogger() {
+    return this.logger.child({ category: 'workflow.command' });
   }
 }
 

@@ -5,9 +5,13 @@ export interface IWidgetProps {
   actions?: { submit?: string; cancel?: string };
 }
 
+export interface IRenderable {
+  render(ipc: IDevChatIpc): Promise<void>;
+}
+
 // uncommon utf-8 character
 export const _IdSeparator = '♯';
-export abstract class Widget {
+export abstract class Widget implements IRenderable {
   protected idPrefix: string;
   private rendered = false;
 
