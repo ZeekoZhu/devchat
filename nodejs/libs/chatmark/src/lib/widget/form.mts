@@ -1,6 +1,6 @@
 import { get, set } from 'lodash-es';
 
-import { Widget } from './widget.mjs';
+import { IRenderable, Widget } from './widget.mjs';
 import { IDevChatIpc } from '../iobase.mjs';
 import { Buttons } from './buttons.mjs';
 
@@ -39,6 +39,7 @@ function isWidgetChild(child: FormPropChild): child is [string, Widget] {
 export class Form<T extends FormPropChild[]> implements IRenderable {
   fields: WidgetFields<T>;
   protected rendered = false;
+  state: 'submitted' | 'canceled' | 'pending' = 'pending';
 
   constructor(protected props: IFormProps<T>) {
     this.fields = {} as WidgetFields<T>;
@@ -68,6 +69,7 @@ export class Form<T extends FormPropChild[]> implements IRenderable {
       if (isWidgetChild(child)) {
         const [ _, component ] = child;
         lines.push(component.toChatmark());
+        lines.push('');
       } else if (typeof child === 'string') {
         lines.push(child);
       } else {
@@ -79,12 +81,19 @@ export class Form<T extends FormPropChild[]> implements IRenderable {
   }
 
   parseResponse(response: Record<string, unknown>) {
+    if (response['form']) {
+      if (response['form'] === 'canceled') {
+        this.state = 'canceled';
+        return;
+      }
+    }
     for (const key in this.fields) {
       const component = this.fields[key];
       if (component instanceof Widget) {
         component.parseResponse(response);
       }
     }
+    this.state = 'submitted';
   }
 
   async render(ipc: IDevChatIpc) {

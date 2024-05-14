@@ -56,9 +56,11 @@ test('can render', async () => {
     label 1
     > | (textField:3c17158c-10bb-47dd-bfd7-df1ffc099971♯editor)
     > text editor value
+
     checkbox title
     > [x](checkbox:3c17158c-10bb-47dd-bfd7-df1ffc099971♯foo) foo
     > [](checkbox:3c17158c-10bb-47dd-bfd7-df1ffc099971♯bar) bar
+
     \`\`\`"
   `);
 });
@@ -108,4 +110,23 @@ test('can update child widgets', async () => {
     { label: 'foo', key: 'foo', checked: false },
     { label: 'bar', key: 'bar', checked: true },
   ]);
+});
+
+test('can handle cancel', async () => {
+  const form = createTestForm();
+
+  const ipc = {
+    send: noop
+  } as unknown as IDevChatIpc;
+
+  const sendSpy = vi.spyOn(ipc, 'send');
+  sendSpy.mockReturnValue(
+    Promise.resolve({
+      form: 'canceled'
+    })
+  );
+
+  await form.render(ipc);
+
+  expect(form.state).toBe('canceled');
 });
