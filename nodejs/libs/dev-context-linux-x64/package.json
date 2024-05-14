@@ -1,0 +1,11 @@
+{
+  "name": "@zeeko/dev-context-linux-x64",
+  "version": "0.0.1",
+  "files": [
+    "./bin"
+  ],
+  "os": [
+    "linux"
+  ],
+  "arch": "x64"
+}

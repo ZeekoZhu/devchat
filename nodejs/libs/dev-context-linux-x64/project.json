@@ -1,0 +1,33 @@
+{
+  "name": "dev-context-linux-x64",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/dev-context-linux-x64/src",
+  "projectType": "library",
+  "release": {
+    "version": {
+      "generatorOptions": {
+        "packageRoot": "dist/{projectRoot}",
+        "currentVersionResolver": "git-tag"
+      }
+    }
+  },
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/dev-context-linux-x64",
+        "tsConfig": "libs/dev-context-linux-x64/tsconfig.lib.json",
+        "packageJson": "libs/dev-context-linux-x64/package.json",
+        "main": "libs/dev-context-linux-x64/src/index.ts",
+        "assets": ["libs/dev-context-linux-x64/*.md"]
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    }
+  }
+}
