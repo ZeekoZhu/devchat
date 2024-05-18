@@ -77,12 +77,15 @@ export const createStdIOIpc = ({
     stdin.on('data', handleOnData);
     stdin.on('close', () => {
       subscriber.complete();
+      dataLogger.debug('stdin closed');
     });
     stdin.on('end', () => {
       subscriber.complete();
+      dataLogger.debug('stdin ended');
     });
     stdin.on('error', (err) => {
       subscriber.error(err);
+      dataLogger.error(err, 'stdin error');
     });
     return () => {
       stdin.removeAllListeners('data');

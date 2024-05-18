@@ -1,38 +1,44 @@
-import { $, os, ProcessOutput } from 'zx';
+import { $, os, ProcessPromise  } from 'zx';
 import * as path from 'node:path';
 import { nanoid } from 'nanoid';
-import { IRenderable, Widget } from './widget/index.mjs';
+import { IRenderable } from './widget/index.mjs';
 import { createStdIOIpc, IDevChatIpc } from './iobase.mjs';
 import pino, { Logger } from 'pino';
 import { ChatOpenAI } from '@langchain/openai';
+import { get } from 'lodash-es';
 
 const createWorkflowShell = (logger: Logger, ipc: IDevChatIpc) => {
-  return async (
+  return (
     pieces: TemplateStringsArray,
     ...args: unknown[]
-  ): Promise<ProcessOutput> => {
-    try {
-      const processPromise = $(pieces, ...args).quiet();
-      logger.debug(`Running: ${processPromise}`);
-      processPromise.stdout.on('data', (data) => {
+  ): ProcessPromise => {
+    const processPromise = $(pieces, ...args)
+      .stdio('pipe', 'pipe', 'pipe')
+      .quiet();
+    logger.debug(`Running: ${get(processPromise, '_command')}`);
+    processPromise.stdout.on('data', (data) => {
         logger.debug(`stdout: ${data}`);
       });
-      processPromise.stderr.on('data', (data) => {
+    processPromise.stderr.on('data', (data) => {
         logger.error(`stderr: ${data}`);
       });
-
-      return await processPromise;
-    } catch (err) {
+    processPromise.catch((err) => {
       logger.error(err, 'Error running shell command');
       ipc.sendError(
         `Error: ${err.message}`
       );
       throw err;
-    }
+    });
+
+    return processPromise;
   };
 };
 
 export class WorkflowContext {
+  /**
+   * Execute a shell command in the workflow context
+   * equivalent to `zx`: $`command`.stdio('pipe', 'pipe', 'pipe').quiet()
+   */
   exec = createWorkflowShell(this.logger, this.ipc);
 
   constructor(protected ipc: IDevChatIpc, protected logger: Logger, private logFile: string) {
